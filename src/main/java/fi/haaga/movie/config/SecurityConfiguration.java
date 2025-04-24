@@ -33,18 +33,21 @@ public class SecurityConfiguration {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf(c -> c.disable())
-				.authorizeHttpRequests(req -> 
-				req.requestMatchers("/user/**").permitAll()
-				.requestMatchers("/movie/**").permitAll()  // Remove this line
-				.requestMatchers("/movie/getAll").authenticated()  // This should come BEFORE the more general rule
-				.requestMatchers("/movie/**").permitAll()  
-				.requestMatchers("/show/**").permitAll()
-				.requestMatchers("/theater/**").permitAll()
-				.requestMatchers("/ticket/**").permitAll()
-				.anyRequest().authenticated())
-			.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.authenticationProvider(authenticationProvider())
-			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class).build();
+		.authorizeHttpRequests(req -> 
+		req.requestMatchers("/user/**").permitAll()
+		// Require specific roles for administrative operations
+		.requestMatchers("/movie/add", "/movie/update/**", "/movie/delete/**").hasAuthority("ADMIN")
+		.requestMatchers("/theater/add", "/theater/update/**", "/theater/delete/**").hasAuthority("ADMIN")
+		.requestMatchers("/show/add", "/show/update/**", "/show/delete/**").hasAuthority("ADMIN")
+		// Allow read operations for all authenticated users
+		.requestMatchers("/movie/getAll", "/movie/get/**").authenticated()
+		.requestMatchers("/theater/getAll", "/theater/get/**").authenticated()
+		.requestMatchers("/show/getAll", "/show/get/**").authenticated()
+		.requestMatchers("/ticket/**").authenticated()
+		.anyRequest().authenticated())
+	.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+	.authenticationProvider(authenticationProvider())
+	.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}
 	
 	@Bean

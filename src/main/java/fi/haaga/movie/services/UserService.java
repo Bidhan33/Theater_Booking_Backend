@@ -32,7 +32,12 @@ public class UserService {
 		// Encode the actual password from the request
 		String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
 		if (userRequest.getRoles() == null || userRequest.getRoles().isEmpty()) {
-			userRequest.setRoles("USER");  // Set default role
+			// Check if the alternative role field is set
+			if (userRequest.getRole() != null && !userRequest.getRole().isEmpty()) {
+				userRequest.setRoles(userRequest.getRole());
+			} else {
+				userRequest.setRoles("USER");  // Set default role
+			}
 		}
 	
 		// Pass encoded password to the converter
